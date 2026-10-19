@@ -140,7 +140,7 @@ class _StudioHomeState extends State<StudioHome> {
       }
       final manifest = {
         'format_version': 2,
-        'header': {'name': _packName, 'description': '${_description}${_author.isEmpty ? '' : '\nAuthor: $_author'}', 'uuid': _uuid.v4(), 'version': _parseVersion(_version), 'min_engine_version': [1, 20, 0]},
+        'header': {'name': _packName, 'description': '$_description${_author.isEmpty ? '' : '\nAuthor: $_author'}', 'uuid': _uuid.v4(), 'version': _parseVersion(_version), 'min_engine_version': [1, 20, 0]},
         'modules': [{'type': 'resources', 'uuid': _uuid.v4(), 'version': _parseVersion(_version)}]
       };
       output['manifest.json'] = Uint8List.fromList(utf8.encode(const JsonEncoder.withIndent('  ').convert(manifest)));
@@ -172,16 +172,223 @@ class _StudioHomeState extends State<StudioHome> {
   @override
   Widget build(BuildContext context) {
     final grouped = <String, List<PackFile>>{};
-    for (final f in _visibleFiles) { (grouped[f.category] ??= []).add(f); }
+    for (final file in _visibleFiles) {
+      (grouped[file.category] ??= <PackFile>[]).add(file);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Resource Pack Studio'), actions: [IconButton(onPressed: _editMetadata, icon: const Icon(Icons.tune), tooltip: 'معلومات الباك')]),
-      body: SafeArea(child: Column(children: [
-        Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 4), child: Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF1B2B24), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFF315846))), child: Row(children: [Container(width: 56, height: 56, decoration: BoxDecoration(color: const Color(0xFF263C31), borderRadius: BorderRadius.circular(12), image: _iconBytes == null ? null : DecorationImage(image: MemoryImage(_iconBytes!), fit: BoxFit.cover)), child: _iconBytes == null ? const Icon(Icons.inventory_2_outlined, size: 30) : null), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_packName, style: Theme.of(context).textTheme.titleMedium), Text('${_files.length} ملف مفهرس • ${_selected.length} ملف محدد', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)), Text(_status, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall)])), IconButton(onPressed: _pickIcon, icon: const Icon(Icons.add_photo_alternate_outlined), tooltip: 'صورة الباك')]))),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), child: Row(children: [Expanded(child: OutlinedButton.icon(onPressed: _busy ? null : _importPack, icon: const Icon(Icons.add_box_outlined), label: const Text('استيراد MCPACK / ZIP'))), const SizedBox(width: 8), FilledButton.icon(onPressed: _busy ? null : _exportPack, icon: const Icon(Icons.file_download_outlined), label: const Text('تصدير'))])),
-        if (_busy) const LinearProgressIndicator(),
-        if (_files.isNotEmpty) SizedBox(height: 50, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), children: [Padding(padding: const EdgeInsets.all(4), child: FilterChip(label: const Text('كل التصنيفات'), selected: _filters.isEmpty, onSelected: (_) => setState(() => _filters.clear()))), ..._allCategories.map((c) => Padding(padding: const EdgeInsets.all(4), child: FilterChip(label: Text(c), selected: _filters.contains(c), onSelected: (v) => _toggleFilter(c, v))))])),
-        Expanded(child: _files.isEmpty ? Center(child: Padding(padding: const EdgeInsets.all(28), child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.layers_outlined, size: 64, color: Color(0xFF55D6A3)), const SizedBox(height: 12), Text('ابدأ بمكتبتك الخاصة', style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 8), const Text('استورد ملفات .mcpack أو .zip. ستظهر الملفات هنا لتختار منها حسب التصنيف أو ملفاً ملفاً.', textAlign: TextAlign.center), const SizedBox(height: 14), FilledButton.icon(onPressed: _importPack, icon: const Icon(Icons.add), label: const Text('اختيار باكات من الهاتف'))]))) : ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 16), children: grouped.entries.map((group) => Card(color: const Color(0xFF18211C), child: ExpansionTile(title: Text(group.key), subtitle: Text('${group.value.length} ملف'), children: [CheckboxListTile(value: _selectedCategories.contains(group.key), onChanged: (v) => _toggleSelectedCategory(group.key, v == true), title: Text('تضمين التصنيف بالكامل (${group.value.length} ملف)'), controlAffinity: ListTileControlAffinity.leading, dense: true), ...group.value.map((f) => CheckboxListTile(value: _selected.contains(f.path), onChanged: (v) => setState(() => v == true ? _selected.add(f.path) : _selected.remove(f.path)), title: Text(f.path.split('/').last, maxLines: 1, overflow: TextOverflow.ellipsis), subtitle: Text(f.path, maxLines: 1, overflow: TextOverflow.ellipsis), controlAffinity: ListTileControlAffinity.leading, dense: true))].toList())).toList())),
-      ])),
+      appBar: AppBar(
+        title: const Text('Resource Pack Studio'),
+        actions: [
+          IconButton(
+            onPressed: _editMetadata,
+            icon: const Icon(Icons.tune),
+            tooltip: 'معلومات الباك',
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B2B24),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFF315846)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF263C31),
+                        borderRadius: BorderRadius.circular(12),
+                        image: _iconBytes == null
+                            ? null
+                            : DecorationImage(
+                                image: MemoryImage(_iconBytes!),
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                      child: _iconBytes == null
+                          ? const Icon(Icons.inventory_2_outlined, size: 30)
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _packName,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            '${_files.length} ملف مفهرس • ${_selected.length} ملف محدد',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                          ),
+                          Text(
+                            _status,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _pickIcon,
+                      icon: const Icon(Icons.add_photo_alternate_outlined),
+                      tooltip: 'صورة الباك',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _busy ? null : _importPack,
+                      icon: const Icon(Icons.add_box_outlined),
+                      label: const Text('استيراد MCPACK / ZIP'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: _busy ? null : _exportPack,
+                    icon: const Icon(Icons.file_download_outlined),
+                    label: const Text('تصدير'),
+                  ),
+                ],
+              ),
+            ),
+            if (_busy) const LinearProgressIndicator(),
+            if (_files.isNotEmpty)
+              SizedBox(
+                height: 50,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: FilterChip(
+                        label: const Text('كل التصنيفات'),
+                        selected: _filters.isEmpty,
+                        onSelected: (_) => setState(_filters.clear),
+                      ),
+                    ),
+                    ..._allCategories.map(
+                      (category) => Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: FilterChip(
+                          label: Text(category),
+                          selected: _filters.contains(category),
+                          onSelected: (enabled) => _toggleFilter(category, enabled),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: _files.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.layers_outlined,
+                              size: 64,
+                              color: Color(0xFF55D6A3),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'ابدأ بمكتبتك الخاصة',
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'استورد ملفات .mcpack أو .zip. ستظهر الملفات هنا لتختار منها حسب التصنيف أو ملفاً ملفاً.',
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 14),
+                            FilledButton.icon(
+                              onPressed: _importPack,
+                              icon: const Icon(Icons.add),
+                              label: const Text('اختيار باكات من الهاتف'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                      children: grouped.entries.map<Widget>((group) {
+                        return Card(
+                          color: const Color(0xFF18211C),
+                          child: ExpansionTile(
+                            title: Text(group.key),
+                            subtitle: Text('${group.value.length} ملف'),
+                            children: [
+                              CheckboxListTile(
+                                value: _selectedCategories.contains(group.key),
+                                onChanged: (value) => _toggleSelectedCategory(
+                                  group.key,
+                                  value == true,
+                                ),
+                                title: Text(
+                                  'تضمين التصنيف بالكامل (${group.value.length} ملف)',
+                                ),
+                                controlAffinity: ListTileControlAffinity.leading,
+                                dense: true,
+                              ),
+                              ...group.value.map<Widget>((file) {
+                                return CheckboxListTile(
+                                  value: _selected.contains(file.path),
+                                  onChanged: (value) => setState(() {
+                                    if (value == true) {
+                                      _selected.add(file.path);
+                                    } else {
+                                      _selected.remove(file.path);
+                                    }
+                                  }),
+                                  title: Text(
+                                    file.path.split('/').last,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    file.path,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  dense: true,
+                                );
+                              }),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+
 }
