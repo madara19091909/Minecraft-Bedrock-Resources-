@@ -27,7 +27,7 @@ class CommunityScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Icon(Icons.info_outline, color: AppTheme.accent),
                 SizedBox(width: 12),
                 Expanded(child: Text('هذه صفحات تأسيسية حالياً. لن نعرض أخباراً أو نتائج وهمية؛ سنربطها بمصدر بيانات فعلي في مرحلة لاحقة.', style: TextStyle(height: 1.5))),
