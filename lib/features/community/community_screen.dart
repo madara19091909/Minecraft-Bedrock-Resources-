@@ -22,9 +22,9 @@ class CommunityScreen extends StatelessWidget {
         const SizedBox(height: 10),
         const FeatureTile(icon: Icons.groups_2_outlined, title: 'القبائل والفرق', subtitle: 'نضيف نظام الفرق بعد تحديد قواعد السيرفر'),
         const SizedBox(height: 20),
-        Card(
+        const Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
