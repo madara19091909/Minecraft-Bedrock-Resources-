@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Column(
-              children: const [
+              children: [
                 _StatusRow(label: 'واجهة التطبيق', ready: true),
                 SizedBox(height: 12),
                 _StatusRow(label: 'الحسابات والصلاحيات', ready: false),
