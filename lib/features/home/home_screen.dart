@@ -68,9 +68,9 @@ class HomeScreen extends StatelessWidget {
         const FeatureTile(icon: Icons.campaign_outlined, title: 'الأخبار والفعاليات', subtitle: 'إعلانات المجتمع والأحداث القادمة'),
         const SizedBox(height: 24),
         const SectionTitle(title: 'حالة المشروع'),
-        Card(
+        const Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               children: const [
                 _StatusRow(label: 'واجهة التطبيق', ready: true),
