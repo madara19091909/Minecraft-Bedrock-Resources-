@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/app.dart';
+import 'package:minecraft_bedrock_resources/app.dart';
+
 
 void main() {
   testWidgets('app opens and shows the home screen', (tester) async {
