@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:minecraft_bedrock_resources/app.dart';
-
+// ignore: avoid_relative_lib_imports
+import '../lib/app.dart';
 
 void main() {
   testWidgets('app opens and shows the home screen', (tester) async {
