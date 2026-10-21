@@ -18,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                CircleAvatar(radius: 38, backgroundColor: AppTheme.surfaceRaised, child: const Icon(Icons.person, size: 42, color: AppTheme.accent)),
+                const CircleAvatar(radius: 38, backgroundColor: AppTheme.surfaceRaised, child: Icon(Icons.person, size: 42, color: AppTheme.accent)),
                 const SizedBox(height: 12),
                 const Text('لاعب جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 5),
